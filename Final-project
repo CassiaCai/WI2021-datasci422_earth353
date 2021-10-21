@@ -1,0 +1,1359 @@
+#!/usr/bin/env python
+
+#coded with Caroline Webster and Eli Ganz
+# ----------------------------------------
+# Applying the Monte Carlo, Genetic Algorithm, 
+# Simulated Annealing and Markov-Chain Monte 
+# Carlo Methods to Strongly Nonlinear Inverse 
+# Problems
+# ----------------------------------------
+
+# FINAL PROJECT
+# Loading in the data and the code
+import time
+# Load the functions from Exercise 4
+from numpy import *
+def forwres(res,thck,fc,fa,AB):
+    ra = zeros(len(AB))
+    nlay = len(res)
+    fres = [float(r) for r in res]
+    pres = array(fres[0:-1])/array(fres[1:nlay])
+
+    for a in arange(len(AB)):
+        for b in arange(len(fc)):
+            g=2.00 * fa[b]/AB[a]
+            tt=1.00
+            for c in arange(nlay-2,-1,-1):  
+                tmu = (pres[c] - tt)/(pres[c] + tt)
+                r = g * thck[c]
+                tex = exp(-r) 
+                tmu = tmu * tex
+                tt = (1.0 - tmu)/(1.0 + tmu)
+            ra[a] = ra[a] + fc[b] * tt
+        ra[a] = ra[a] * res[0]
+    return ra
+
+# Load the functions from Exercise 4
+def getcoeff():
+    fa = zeros(61); fc = zeros(61)
+    fa[ 0] = exp(-6.8348046e+00)
+    fa[ 1] = exp(-6.6045461e+00)
+    fa[ 2] = exp(-6.3742876e+00)
+    fa[ 3] = exp(-6.1440291e+00)
+    fa[ 4] = exp(-5.9137706e+00)
+    fa[ 5] = exp(-5.6835121e+00)
+    fa[ 6] = exp(-5.4532536e+00)
+    fa[ 7] = exp(-5.2229951e+00)
+    fa[ 8] = exp(-4.9927366e+00)
+    fa[ 9] = exp(-4.7624781e+00)
+    fa[10] = exp(-4.5322196e+00)
+    fa[11] = exp(-4.3019611e+00)
+    fa[12] = exp(-4.0717026e+00)
+    fa[13] = exp(-3.8414441e+00)
+    fa[14] = exp(-3.6111856e+00)
+    fa[15] = exp(-3.3809271e+00)
+    fa[16] = exp(-3.1506686e+00)
+    fa[17] = exp(-2.9204101e+00)
+    fa[18] = exp(-2.6901516e+00)
+    fa[19] = exp(-2.4598931e+00)
+    fa[20] = exp(-2.2296346e+00)
+    fa[21] = exp(-1.9993761e+00)
+    fa[22] = exp(-1.7691176e+00)
+    fa[23] = exp(-1.5388591e+00)
+    fa[24] = exp(-1.3086006e+00)
+    fa[25] = exp(-1.0783421e+00)
+    fa[26] = exp(-8.4808358e-01)
+    fa[27] = exp(-6.1782508e-01)
+    fa[28] = exp(-3.8756658e-01)
+    fa[29] = exp(-1.5730808e-01)
+    fa[30] = exp( 7.2950416e-02)
+    fa[31] = exp( 3.0320892e-01)
+    fa[32] = exp( 5.3346742e-01)
+    fa[33] = exp( 7.6372592e-01)
+    fa[34] = exp( 9.9398442e-01)
+    fa[35] = exp( 1.2242429e+00)
+    fa[36] = exp( 1.4545014e+00)
+    fa[37] = exp( 1.6847599e+00)
+    fa[38] = exp( 1.9150184e+00)
+    fa[39] = exp( 2.1452769e+00)
+    fa[40] = exp( 2.3755354e+00)
+    fa[41] = exp( 2.6057939e+00)
+    fa[42] = exp( 2.8360524e+00)
+    fa[43] = exp( 3.0663109e+00)
+    fa[44] = exp( 3.2965694e+00)
+    fa[45] = exp( 3.5268279e+00)
+    fa[46] = exp( 3.7570864e+00)
+    fa[47] = exp( 3.9873449e+00)
+    fa[48] = exp( 4.2176034e+00)
+    fa[49] = exp( 4.4478619e+00)
+    fa[50] = exp( 4.6781204e+00)
+    fa[51] = exp( 4.9083789e+00)
+    fa[52] = exp( 5.1386374e+00)
+    fa[53] = exp( 5.3688959e+00)
+    fa[54] = exp( 5.5991544e+00)
+    fa[55] = exp( 5.8294129e+00)
+    fa[56] = exp( 6.0596714e+00)
+    fa[57] = exp( 6.2899299e+00)
+    fa[58] = exp( 6.5201884e+00)
+    fa[59] = exp( 6.7504469e+00)
+    fa[60] = exp( 6.9807054e+00)
+
+    fc[ 0] = 7.3260937e-04
+    fc[ 1] = 5.6326423e-04
+    fc[ 2] = 1.3727237e-04
+    fc[ 3] = 7.5331222e-04
+    fc[ 4] = 3.5918326e-04
+    fc[ 5] = 1.0500608e-03
+    fc[ 6] = 7.1530982e-04
+    fc[ 7] = 1.5160070e-03
+    fc[ 8] = 1.2841617e-03
+    fc[ 9] = 2.2497985e-03
+    fc[10] = 2.1906186e-03
+    fc[11] = 3.4076782e-03
+    fc[12] = 3.6321245e-03
+    fc[13] = 5.2376028e-03
+    fc[14] = 5.9212519e-03
+    fc[15] = 8.1315877e-03
+    fc[16] = 9.5527062e-03
+    fc[17] = 1.2708615e-02
+    fc[18] = 1.5305589e-02
+    fc[19] = 1.9941086e-02
+    fc[20] = 2.4396626e-02
+    fc[21] = 3.1333652e-02
+    fc[22] = 3.8683065e-02
+    fc[23] = 4.9127993e-02
+    fc[24] = 6.0824806e-02
+    fc[25] = 7.6314344e-02
+    fc[26] = 9.3928346e-02
+    fc[27] = 1.1545027e-01
+    fc[28] = 1.3868663e-01
+    fc[29] = 1.6248847e-01
+    fc[30] = 1.8114332e-01
+    fc[31] = 1.8424433e-01
+    fc[32] = 1.5556741e-01
+    fc[33] = 6.8592481e-02
+    fc[34] = -8.8339029e-02
+    fc[35] = -2.8819226e-01
+    fc[36] = -3.5565260e-01
+    fc[37] = -5.6288677e-02
+    fc[38] = 4.8186942e-01
+    fc[39] = -5.1516453e-02
+    fc[40] = -2.6102989e-01
+    fc[41] = 2.1416490e-01
+    fc[42] = -9.4490687e-02
+    fc[43] = 2.6196370e-02
+    fc[44] = -5.1097828e-04
+    fc[45] = -6.6032948e-03
+    fc[46] = 7.5193619e-03
+    fc[47] = -6.7854344e-03
+    fc[48] =  5.8044372e-03
+    fc[49] =  -4.9354894e-03
+    fc[50] =  4.2323106e-03
+    fc[51] =  -3.6733648e-03
+    fc[52] =  3.2266260e-03
+    fc[53] =  -2.8649137e-03
+    fc[54] =  2.5677680e-03
+    fc[55] =  -2.3202655e-03
+    fc[56] =  2.1115187e-03
+    fc[57] =  -1.9334662e-03
+    fc[58] =  1.7800248e-03
+    fc[59] =  -1.6465436e-03
+    fc[60] =  1.3468317e-03
+    return fa,fc
+
+fa, fc = getcoeff()
+
+r1 = 245
+r3 = 200
+
+h1 = 6.6
+
+# Load the data from Exercise 4
+%matplotlib notebook
+%matplotlib notebook
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+
+
+
+# insert data reading code:
+df = pd.read_csv('abra4.csv')
+df.columns = ['AB', 'raobs']
+
+
+# store distances in variable AB and apparent resisitivities in variable raobs.
+AB = df['AB'].tolist()
+raobs = df['raobs'].tolist()
+logAB = [log(el) for el in AB]
+lograobs = [log(el) for el in raobs]
+
+# Load the functions from Exercise 3
+from matplotlib.pyplot import *
+# Find correct value for drho in the introduction above
+drho = -2700
+
+def plotgrav(x, dgp, r, z, it):
+#-------------------------------------------------------------------------
+# The parameters of the plotgrav function are : x=horizontal distance
+# along the survey line, dgp=gravity data, r=radius of the tunnel,
+# z=depth to the center of the tunnel and it=number of iterations 
+# (it = -1 for plotting the measured gravity data and it = 0 for plotting
+# the initial model and the gravity data obtained by solving the 
+# forward model)
+#-------------------------------------------------------------------------
+#
+# it == -1 for plotting the measured gravity data
+# it == 0 for plotting the initial model and the data calculated by solving the forward model
+# it > 0 for visualizing the results after each iteration
+
+    alpha = linspace(0,2*pi,360)
+    xr = r * cos(alpha)
+    zr = r * sin(alpha) + z
+
+    if it == -1: color = 'b.'
+    if it == 0: color = 'r'
+    if it == 1: color = 'k'
+    if it == 2: color = 'g'
+    if it == 3: color = 'b'
+
+    subplot(211)
+    plot(xr,zr,color, alpha=0.6)
+    axis('equal'); axis([min(x),max(x),30,0])
+    xlabel('x'); ylabel('z')
+
+    subplot(212)
+    plot(x,dgp,color)
+    axis([min(x),max(x),-0.2,0.1])
+    xlabel('x'); ylabel('dg')
+
+    show()
+    return 0
+
+# Load the data from Exercise 3
+
+def readgravdata(fname):
+    xdg = open(fname,'r').readlines()
+    x = array([float(s.split()[0]) for s in xdg])
+    dg = array([float(s.split()[1]) for s in xdg])
+    return x,dg
+
+
+# load values of constants and data
+k = 2*pi*0.0000067      # Provide the correct value for k=2*pi*c: we use 6.67E-6 instead of E-11
+# read in the data:
+x, dg = readgravdata('xdg3.txt') # x= distance, dg = gravity anomaly 
+
+n = len(x)          # n is number of data points
+
+import numpy as np
+import random
+from mpl_toolkits import mplot3d
+
+
+class MC:
+
+    def __init__ (
+        self, 
+        M, 
+        param1,
+        param2,
+        reso, 
+        bounds, 
+        objective
+    ):
+        """
+        M: Int. amount of times to do this
+        param1: String. The title of the first parameter, i.e 'Radius'
+        param2: String. The title of the second parameter, i.e. 'Depth'
+        res: tuple or list of resolutions or \delta ms 
+        bounds: a list of tuples for each parameter, i.e. [(x_min, x_max), (y_min, y_max)]
+        objective: a function that returns a value of the objective function given parameters
+        """
+        self.M = M
+        self.param1 = param1
+        self.param2 = param2
+        self.reso = reso
+        self.bounds = bounds
+        self.objective = objective
+        
+        ls = []
+        for res, bou in zip(self.reso, self.bounds):
+            a = (bou[1]-bou[0]) / res
+            ls.append(a)
+        self.N = ls # This is the theoretical number of solutions of the forward problem, for a given parameter          
+        
+        
+    def search(self):
+        """
+        steps 3 and 4 in the Strongly NonLinear pdf on canvas
+        """
+        m_1s = []
+        m_2s = []
+        for i in range(self.M): # do it M times
+            
+            i_ran1 = random.randint(0,int(self.N[0])) # get first random number
+            i_ran2 = random.randint(0, int(self.N[1])) # get second random number
+            
+            m_1 = self.bounds[0][0] + i_ran1 * self.reso[0] # get first model parameter
+            m_2 = self.bounds[1][0] + i_ran2 * self.reso[1] # get second model parameter
+            m_1s.append(m_1)
+            m_2s.append(m_2)
+
+        m_1s = sorted(m_1s)
+        m_2s = sorted(m_2s)
+        
+        results = np.zeros([len(m_1s),len(m_2s)])
+        for i in range(len(m_1s)):
+            for j in range(len(m_2s)):
+                results[j, i] = self.objective(m_1s[i], m_2s[j])
+        return m_1s, m_2s, results
+        
+    
+    def plotSurface(self):
+        """
+        Plot surface map of objective function in model space
+        """
+        m_1s, m_2s, results = self.search()
+        X, Y = np.meshgrid(m_1s, m_2s)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.set_title(f'Surface plot of {self.param2} vs. {self.param1}')
+        ax.set(xlabel=self.param1, ylabel=self.param2, zlabel='Misfit Value')
+        surf = ax.plot_surface(X, Y, results, rstride=1, cstride=1, cmap='terrain',)
+
+        
+    def plotContours(self):
+        """
+        Plot contour map of objective function in model space
+        """
+        v = np.logspace(-3,3,30)
+        m_1s, m_2s, results = self.search()
+        X, Y = np.meshgrid(m_1s, m_2s)
+        plt.contour(X, Y, results, v, cmap='terrain')
+        plt.title(f'Contour plot of {self.param2} vs. {self.param1} using Monte Carlo')
+        plt.xlabel(self.param1)
+        plt.ylabel(self.param2)
+        plt.colorbar()
+        
+        
+    def getMin(self, show=True):
+        """
+        Find position of the minimum point
+        """
+        m_1s, m_2s, results = self.search()
+        cands = []
+        for row in results:
+            cands.append(min(row)) 
+        small = min(cands) # smallest number in the array
+        for i, val in enumerate(cands): 
+            if val == small:
+                break # find the row position
+        candrow = results[i,:]
+        for j, val in enumerate(candrow):
+            if val == small:
+                break # find the column position
+        if show:
+            print(f'The {self.param1} is {m_1s[j]} and the {self.param2} is {m_2s[i]}')
+        
+        return m_1s[j], m_2s[i]
+    
+        
+#three = MC(1000, 'Radius', 'Depth', [.1,.1], [(0,5), (1,6.5)], gravobjective)
+#three.plotContours()
+#radius, depth = three.getMin()
+#print(radius, depth)
+
+#four = MC(40, 'Resistivity', 'Thickness', [.5, .5], [(1000,1300), (10,20)], resobjective)
+#four.plotContours()
+#resistivity, thickness = four.getMin()
+
+from scipy import stats
+from scipy.stats import norm
+import numpy as np
+from scipy.stats import uniform
+        
+
+class Frontier:
+    """
+    a way of storing the model vectors to test
+    """
+    
+    def __init__(self, m01, m02):
+        self.m0 = (m01, m02)
+        self.ls = [(m01, m02)]
+    
+    def add(self, m11, m12):
+        """
+        add a node to the frontier
+        """
+        self.m1 = (m11, m12)
+        self.ls.append(self.m1)
+        return self.ls
+    
+    def success(self):
+        """
+        If the new node is successful (smaller objective function or wins probability) 
+        then it replaces the old (becomes m0)
+        """
+        self.ls.remove(self.m0)
+        self.m0 = self.m1
+        return self.ls
+    
+    def fail(self):
+        """
+        If the new node is a failure (larger object function and loses probability) 
+        then it is rejected (deleted)
+        """
+        self.ls.remove(self.m1)
+        return self.ls
+
+
+class Kernel:
+    """
+    The transition probability density kernel
+    This updates with means at the new model parameter vector components
+    This is a 1d distribution, we use one to select each component separately
+    """
+    
+    def __init__ (self, mean, std):
+        self.mean = mean # should be the m0 component
+        self.std = std # stays
+        
+    def change(self, mean1):
+        """
+        Update with a new `m0`
+        """
+        self.mean = mean1 
+    
+    def choose(self):
+        """
+        returns a random number from the distribution
+        """
+        return float(norm.rvs(size=1, loc = self.mean, scale=self.std))
+
+
+class MultiKernel:
+    
+    def __init__ (self, mean, cov):
+        self.mean = mean
+        self.cov = cov
+        
+    def change(self, mean1):
+        self.means = mean1
+    
+    def choose(self):
+        a = np.random.multivariate_normal(self.mean, self.cov, 1).T
+        m11 = float(a[0])
+        m12 = float(a[1])
+        return m11, m12
+    
+def UniPrior(m01range, m02range):
+    """
+    We use this to pick our initial m0 this picks from a uniform range
+    plug in a range for the two parameters, as tuples
+    return a random choice for each, from that range
+    """
+    m01 = float(uniform.rvs(size=1, loc=m01range[0], scale=m01range[1]-m01range[0]))
+    m02 = float(uniform.rvs(size=1, loc=m02range[0], scale=m02range[1]-m02range[0]))
+    return m01, m02
+
+
+class MCMC:
+    
+    def __init__ (self, prior, objective, N, m01range, m02range, std):
+        """
+        prior: Function should return a random m_0 from a prior prob distribution
+        objective: Objective function, should take in two parameters and return value of objective function
+        N: number of times to do this
+        m01range: range for prior distribution of first model parameter
+        m02range: range for prior distribution of second model parameter
+        std: standard deviation for transistion probability density kernel
+        """
+        self.prior = prior
+        self.objective = objective
+        self.N = N
+        self.m01range = m01range
+        self.m02range = m02range
+        self.std = std
+        
+        m01, m02 = self.prior(self.m01range,self.m02range) # picks m0 from the Prior distribution
+        self.front = Frontier(m01, m02) # establishes a frontier for comparisons
+        
+        
+    def next_m(self):
+        """
+        Chooses a m1 from the transition probability density kernel which is updated to reflect the new m0
+        returns the frontier 
+        """
+        ker1 = Kernel(self.front.m0[0], self.std)
+        ker2 = Kernel(self.front.m0[1], self.std)
+        m11 = ker1.choose()
+        m12 = ker2.choose()
+        self.front.add(m11, m12)
+        return self.front.ls
+    
+    
+    def compare(self):
+        """
+        Compare two potential parameter vectors, 
+        returns the winner becomes m0 and the value of E(m0)
+        """
+        self.next_m()
+        Em0 = self.objective(self.front.m0[0], self.front.m0[1])
+        Em1 = self.objective(self.front.m1[0], self.front.m1[1])
+        if Em1 < Em0: # This is switched from the instructions since we are minimizing rather than maximizing
+            self.front.success()
+            Em0 = Em1
+        else:
+            ran = random.uniform(0,1)
+            hasting = Em0 / Em1 # This also switches from the instructions for the same reason
+            if hasting >= ran:
+                self.front.success()
+                Em0 = Em1
+            else: 
+                self.front.fail()
+        return self.front.m0, Em0
+    
+    
+    def search(self):
+        """
+        Applies the comparison method over a range N
+        returns: lists of model parameters first component, second component and objective function values
+        """
+        m_1s = []
+        m_2s = []
+        misfits = []
+        for i in range(self.N):
+            loc, misfit = self.compare()
+            #print(loc)
+            m_1s.append(loc[0])
+            m_2s.append(loc[1])
+            misfits.append(misfit)
+        return m_1s, m_2s, misfits
+    
+    def getMin(self):
+        """
+        Returns the model parameters associated with the smallest objective function value
+        """
+        m_1s, m_2s, misfits = self.search()
+        mini = min(misfits)
+        ind = misfits.index(mini)
+        return m_1s[ind], m_2s[ind]
+    
+    def plotscatter(self, xax, yax):
+        """
+        Plots the search, with an overlay of the value of the value objective function at each point
+        """
+        m_1s, m_2s, misfits = self.search()
+        plt.scatter(m_1s, m_2s, c=misfits, cmap = 'terrain', alpha=0.7)
+        plt.title(f'MCMC search of Model Space')
+        plt.xlabel(xax)
+        plt.ylabel(yax)
+        plt.colorbar()
+
+            
+class MCMCMulti(MCMC):
+    
+    def next_m(self):
+        ker1 = MultiKernel([self.front.m0[0],self.front.m0[1]], self.std)
+        m11, m12 = ker1.choose()
+        self.front.add(m11, m12)
+        return self.front.ls
+            
+##### ------------------------------------------------------------------------------------------------------------------------------------ GENETIC ALGORITHM
+import random
+# Step 1: Coding
+
+# Set major boundaries over which to to examine the model space
+lower_r_boundary = -10
+upper_r_boundary = 10
+lower_z_boundary = 0
+upper_z_boundary = 30
+
+# Generate random starting population of solutions to the inverse problem 
+def generate_population(size, lower_r_boundary,upper_r_boundary, lower_z_boundary,upper_z_boundary):
+    
+    population = [] 
+    
+    for i in range(size):
+        individual = {
+            "r": random.uniform(lower_r_boundary, upper_r_boundary), # For each 'individual' in the population, 
+            "z": random.uniform(lower_z_boundary, upper_z_boundary), # a random number inside the boundaries
+        }
+        population.append(individual)
+        
+    return population
+
+# Apply the fitness function to individuals in the random population to "evaluate" the fitness of each individual 
+# relative to other individuals 
+
+# Step 2: Selection and Pairing 
+
+# Determing an individual's fitness using the objective function
+def fitness_eval(individual): 
+    r_random = individual["r"] 
+    z_random = individual["z"]
+    
+    dgp = k * drho * r_random**2 * z_random/(x**2 + z_random**2)  
+    return 1/(((dg - dgp).T@(dg - dgp))) #this will return the "fitness" of any random set of parameters in a "population"
+# Since it is 1/E(m), the maximum value (rather than the min. value) will be the most "fit" parameter 
+
+# Create a list of the fitnesses of each individual in the population 
+def pop_eval(population): 
+    E = []
+    for i in range(len(population)): 
+        evaluation = fitness_eval(population[i])
+        E.append(evaluation)
+    return E
+
+# Make next generation by pairing combinations of r and h. They will be paired based on a "roulette wheel" that spins
+# and lands on pairs to "reproduce". The smaller E(m), the greater of a chance that the pair will be selected.
+def choice_by_roulette(population):
+    
+    fitness_sum = sum(pop_eval(population)) # Sum of all E(m) in the population
+
+    draw = random.uniform(0, 1) # pick a random number between 0 and 1
+
+    accumulated = 0
+    for individual in range(len(population)):
+        fitness = fitness_eval(population[individual])
+        probability = fitness / fitness_sum # The probabilty is proportional to an individual's fitness compared to the whole population's fitness
+        accumulated += probability 
+
+        if draw <= accumulated:
+            return individual  
+
+# Sort the population according to it's fitness 
+def sort_population_by_fitness(population):
+    return sorted(population, key=fitness_eval)
+
+# Step 3: Exchange of genetic information - this is where diversity can increase the chances of landing on the best
+# fitness
+
+# "Crossover" individuals, or swap the resistivity and thickness of two individuals, increasing randomness
+def crossover(individual_a, individual_b):
+    ra = individual_a["r"]
+    ha = individual_a["z"]
+
+    rb = individual_b["r"]
+    hb = individual_b["z"]
+
+    return {"r": (ra + rb) / 2, "z": (ha + hb) / 2}
+
+# Step 4: Mutation of genetic information 
+
+# "mutate" individuals, this helps solve the potential issue that the most "fit" individual was not represented in the
+# original population 
+def mutate(individual):
+    next_r = individual["r"] + random.uniform(-0.1, 0.1) # the mutation for resistivity is higher because there is a greater range of values that it can fall in 
+    next_h = individual["z"] + random.uniform(-0.1, 0.1)
+
+    # Guarantee that the mutations are kept inside boundaries
+    next_r = min(max(next_r, lower_r_boundary), upper_r_boundary)
+    next_h = min(max(next_h, lower_z_boundary), upper_z_boundary)
+
+    return {"r": next_r, "z": next_h}
+
+# Step 5: combine all the steps and iterate until a solution converges 
+
+# Iterative function that will create new generations based on probability according to fitness
+
+def make_next_generation(population):
+    next_generation = []
+    sorted_by_fitness_population = sort_population_by_fitness(population)
+    best_individual_per_pop = sorted_by_fitness_population[-1]
+    fitness_sum = sum(fitness_eval(individual) for individual in population)
+     
+    for i in range(len(population)):
+        first_choice = choice_by_roulette(population) # Selection based on probability proportional to E(m) 
+        second_choice = choice_by_roulette(population)# Selection based on probability proportional to E(m) 
+        
+        individual = crossover(population[first_choice], population[second_choice]) # Exchange
+        individual = mutate(individual) # Mutation 
+        next_generation.append(individual)
+
+    return next_generation
+
+# Population size and # of generations can be high becuase the objective function is fast  
+generations = 50 # Chose number of iterations 
+pop_size = 50 # Chose number of individuals in each population -> similar to diversity 
+
+# Enter population size and boundaries 
+# population = generate_population(pop_size, r_boundaries, z_boundaries)
+
+# Iterate for number of generations dictated 
+def gen_algorithm(pop_size, generations,lower_r_boundary,upper_r_boundary,lower_z_boundary, upper_z_boundary):
+    i=1
+    # Generate population based on parameters 
+    population = generate_population(pop_size,lower_r_boundary,upper_r_boundary,lower_z_boundary, upper_z_boundary)
+    # create new list for the best individuals of each iteration
+    best_individuals = [] 
+    
+    while True:
+        # add best individuals according to fitness to the best individuals list 
+        best_individuals.append(sort_population_by_fitness(population)[-1])
+
+        print(f" GENERATION {i}")
+        for individual in population:
+            print(individual, "E(m)=", 1/fitness_eval(individual))
+            pass
+        if i == generations:
+            break
+        i += 1
+        population = make_next_generation(population)  
+    # Choose best individual from the last generation as the converged solution according to E(m)  
+    best_individual = sort_population_by_fitness(population)[-1] 
+    #print("\n FINAL RESULT")
+    #print(best_individual, ", E(m)=", 1/fitness_eval(best_individual))
+    # print(f"\n BEST INDIVIDUALS PER GENERATION:", best_individuals)
+    x = best_individual["r"]
+    y = best_individual["z"]
+    
+    return x, y, best_individuals
+    
+
+pos_result = gen_algorithm(50,50,0,6,0,20)
+# Final result with positive boundaries with 50 individuals in 50 generations
+# {'r': 2.204085917689949, 'z': 6.63000488659285} , E(m)= 3.3227237862265467e-05
+
+neg_result = gen_algorithm(50,50,-6,0,0,15)
+
+# Final result with negative boundaries with 50 individuals in 50 generations
+# {'r': -2.2009322069173605, 'z': 6.559133040871852} , E(m)= 3.552103493477576e-05
+
+# Creating a larger population will take a longer time to iterate but offers the greatest chance to "randomly" 
+# choose a starting generation with a good guess. Becuase there is greater diversity in the population, there is 
+# a greater chance that combining individual parameters will lead to a greater fitness.
+
+##### ------------------------------------------------------------------------------------------------------------------------------------ SIMULATED ANNEALING
+k1 = 2*math.pi*6.67*(10**-11) 
+const = k1 * drho * 1e5
+
+def energy_state(r_random, z_random):
+    dgp_incomp = (const*(r_random**2)*z_random) / (x**2 + z_random**2)
+    d_diff = dg - dgp_incomp
+    E = (d_diff).transpose() @ (d_diff)
+    return E
+
+kb = 1.38064852e-23
+def modified_Bprobf(E_0, E_1,T):
+    prob = exp(-(E_0 - E_1) / (kb*T)) 
+    return prob
+
+def simulated_annealing(Tstep, Tinit, Tfin, N, uni11, uni12, uni21, uni22):
+# -----------------------------------
+# Tstep = cooling step change in T
+# N = number of model parameter configurations to test for each temperature
+# (uni11, uni12) = bounds of uniform distribution to draw for E_0
+# (un21, uni22) = bounds of uniform distribution to draw for E_1
+# -----------------------------------
+    r_soln = []; z_soln = []; E_vers = []
+    while Tinit > Tfin:
+        for i in range(N):
+            r_random0 = random.uniform(uni11, uni12) #
+            z_random0 = random.uniform(1, 10) #
+            E_0 = energy_state(r_random0,z_random0)
+            
+            print(r_random0, z_random0, Tinit, E_0)
+            r_random1 = random.uniform(uni21, uni22) #
+            z_random1 = random.uniform(1, 15) #
+            E_1 = energy_state(r_random1,z_random1)
+            print(r_random1, z_random1, Tinit, E_1)
+            
+            if isinstance(E_0, float) and isinstance(E_1, float) and (E_0 < 100) and (E_1 < 100):
+                if E_1 < E_0:
+                    prob = 1
+                    r_random0 = r_random1
+                    z_random0 = z_random1
+                    E_0 = E_1   
+                    r_soln.append(r_random0)
+                    z_soln.append(z_random0)
+                    E_vers.append(E_0)
+                    print(r_random0,z_random0, Tinit, E_0)
+                    print('---')
+                    break
+                else:
+                    prob = modified_Bprobf(E_0, E_1, Tinit)
+                    if prob <= 1:
+                        rannum = random.uniform(0, 1)
+                        if prob > rannum:
+                            r_random0 = r_random1
+                            z_random0 = z_random1
+                            E_0 = E_1
+                            r_soln.append(r_random0)
+                            z_soln.append(z_random0)
+                            E_vers.append(E_0)
+                            print(r_random0,z_random0, Tinit,E_0)
+                            print('---')
+                            break
+        Tinit = Tinit - Tstep
+    return r_soln, z_soln, E_vers
+
+posradius_soln, posdepth_soln, Energy_vers = simulated_annealing(0.1,15000,5000,50,1,10,1,15)
+negradius_soln, negdepth_soln, negEnergy_vers = simulated_annealing(0.1,15000,5000,50,-10,-1,1,15)
+
+plt.close()
+#plt.scatter(posradius_soln, posdepth_soln, c=log10(posEnergy_vers),s=5, alpha=0.7, vmin = 0)
+plt.scatter(negradius_soln, negdepth_soln, c=log10(negEnergy_vers),s=5, alpha=0.7, vmin = 0)
+plt.xlabel('Radius (m)')
+plt.ylabel('Depth (m)')
+plt.title('Scatterplot of -SA Search')
+plt.colorbar()
+plt.show()
+
+counts, xedges, yedges = np.histogram2d(posradius_soln, posdepth_soln, bins=(40, 40))
+x_ind, y_ind = np.unravel_index(np.argmax(counts), counts.shape)
+
+negcounts, negxedges, negyedges = np.histogram2d(negradius_soln, negdepth_soln, bins=(50, 50)) #15 and 15
+negx_ind, negy_ind = np.unravel_index(np.argmax(negcounts), negcounts.shape)
+
+print(negxedges[negx_ind])
+
+print(f'The maximum count is {counts[x_ind][y_ind]:.0f} at index ({x_ind}, {y_ind})')
+print(f'Between radius of {xedges[x_ind]} and {xedges[x_ind+1]}')
+print(f'and between depth of {yedges[y_ind]} and {yedges[y_ind+1]}')
+
+plt.close()
+plt.hist(Energy_vers)
+plt.xlabel("Value of Objective Function")
+plt.ylabel('Frequency')
+plt.title('Histogram of Objective Function Values Found with SA')
+print(np.nanmax(Energy_vers))
+print(np.nanmin(Energy_vers))
+print(np.nanmean(Energy_vers))
+
+plt.close()
+plt.hist2d(posradius_soln, posdepth_soln, bins = (30,30))
+plt.xlabel('Radius (m)')
+plt.ylabel('Depth (m)')
+plt.title('Histogram of Values Searched in Model Space Using SA')
+plt.colorbar()
+plt.show()
+
+##### ------------------------------------------------------------------------------------------------------------------------------------ MARKOV-CHAIN MONTE CARLO
+plt.close()
+
+# ---------------- Here we define the objective function for problem 3 ---------------- #
+
+def gravobjective(m_1, m_2):
+    """
+    Calculate the value of the objective function in problem 3, given two model parameters
+    """
+    dgp = k * drho * m_1**2 * m_2/(x**2 + m_2**2)
+    return (dg - dgp).T @(dg - dgp)
+
+# ---------------- Defining an MCMC Object that will search model space in Exercise 3 ---------------- #
+
+ex3 = MCMCMulti(
+    UniPrior, # Select the first model vector from the uniform prior distribution 
+    gravobjective, # Call the gravobjective function when calculating misfit
+    2000, # Search 1000 model vectors in model space
+    (0,10), # The bounds for the Radius component in the uniform prior
+    (0,10), # The bounds for the Depth component in the uniform prior
+    [[1,0],   # A covariance matrix to be used in the transition probability density kernel
+     [0,1]]
+)
+
+best3 = ex3.getMin() # return the minimal solution found
+ex3.plotscatter('Radius (m)', 'Depth (m)') # Make a scatter plot with these labels
+print(f'The minimal solution is {best3}')
+
+##### ------------------------------------------------------------------------------------------------------------------------------------ MONTE CARLO METHOD
+# ---------------- Here we define an instance of the Monte Carlo Search Object for problem 3 ---------------- #
+plt.close()
+
+three = MC(
+    1000, # Search 1000 vectors in model space
+    'Radius', # Name the x-axis
+    'Depth', # Name the y-axis
+    [.1,.1], # These are the resolutions of each component
+    [(-4,4), (-1,15)], # The are the lower and upper bounds for each model component
+    gravobjective # This is the objective function, which we defined in the MCMC Box
+)
+
+three.plotContours()
+radius, depth = three.getMin()
+
+print('The minimal solution is,', radius, depth)
+
+plt.close()
+plotgrav(x, dg, pos_result[0], pos_result[1], it=0) # GA
+plotgrav(x, dg, best3[0], best3[1], it=1) # MCMC
+plotgrav(x, dg, xedges[x_ind], yedges[y_ind], it=-1) # SA lower bound
+plotgrav(x, dg, xedges[x_ind+1], yedges[y_ind+1], it=2) # SA Upper bound
+
+plt.close()
+
+
+def getMin(E):
+    """
+    plug in a matrix, get out the position of the minimum point
+    """
+    cands = []
+    for row in E:
+        cands.append(min(row)) 
+    small = min(cands) # smallest number in the array
+    for i, val in enumerate(cands): 
+        if val == small:
+            break # find the row position
+    candrow = E[i,:]
+    for j, val in enumerate(candrow):
+        if val == small:
+            break # find the column position
+    return i,j
+
+
+def gnl(rmin,rmax,zmin,zmax,blank): 
+
+    ngrid = 200
+    r = np.arange(rmin,rmax,(rmax-rmin)/float(ngrid))
+    z = np.arange(zmin,zmax,(zmax-zmin)/float(ngrid))
+
+    E = np.zeros([len(z),len(r)]) 
+    for i in np.arange(len(r)):
+        for j in np.arange(len(z)):
+            dgp = k * drho * r[i]**2 * z[j]/(x**2 + z[j]**2)
+            E[j,i] = np.dot((dg - dgp).T,(dg - dgp)) # Objective function E(m)
+            if blank & (z[j]<r[i]):
+                E[j,i] = E[j,i] + NaN 
+    
+    v = np.logspace(-3,3,30) 
+    X,Y = np.meshgrid(r,z)
+    row, col = getMin(E)
+    plt.contour(X,Y,E,v, alpha=0.5)
+    plt.xlabel('Radius (m)')
+    plt.ylabel('Depth (m)')
+    plt.scatter(pos_result[0], pos_result[1], label="GA Positive")
+    plt.scatter(neg_result[0], neg_result[1], label="GA Negative")
+    
+    plt.scatter(xedges[x_ind], yedges[y_ind], marker='x', label='SA Low Positive' )
+    plt.scatter(xedges[x_ind+1], yedges[y_ind+1], marker='x', label='SA High Positive' )
+    plt.scatter(negxedges[negx_ind+1], negyedges[negy_ind+1], marker='x', label='SA Low Negative' )
+    plt.scatter(negxedges[negx_ind], negyedges[negy_ind], marker='x', label='SA High Positive' )
+    plt.scatter(best3[0], best3[1],  marker='*', label='MCMC Method')
+    plt.scatter(radius, depth, marker='v', label='MC Method')
+    plt.scatter(r[col], z[row], marker='2', label='Grid Search Method')
+    
+
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.tight_layout()
+
+    plt.show()
+    
+# Question 10: 
+gnl(-4,4,-2,15,False) 
+
+#### EXERCISE 4
+#### GENETIC ALGORITHM
+import random
+import math
+from numpy import arange
+
+
+# Step 1: Coding
+# Set major boundaries: 
+lower_r_boundary, upper_r_boundary = 0,5000
+lower_h_boundary, upper_h_boundary = 0,1000
+
+# Generate random starting population of solutions to the inverse problem 
+def generate_population(size, lower_r_boundary,upper_r_boundary, lower_z_boundary,upper_z_boundary):
+    
+    population = [] 
+    
+    for i in range(size):
+        individual = {
+            "r": random.uniform(lower_r_boundary, upper_r_boundary), # For each 'individual' in the population, 
+            "h": random.uniform(lower_z_boundary, upper_z_boundary), # a random number inside the boundaries
+        }
+        population.append(individual)
+        
+    return population
+
+# Apply the fitness function to individuals in the random population to "evaluate" the fitness of each individual 
+# relative to other individuals 
+
+# Step 2: Selection and Pairing 
+
+# Determing an individual's fitness using the objective function
+def fitness_eval(individual): 
+    r_random = individual["r"] 
+    h_random = individual["h"]
+    
+    racalc = forwres((r1,r_random,r3),(h1,h_random),fc,fa,AB) # solve the forward problem to calculate the resistivity using values from the random population
+    res = log(raobs/racalc) # Calculate residuals     
+    return 1/(np.transpose(res)@res) #this will return the "fitness" of any random set of parameters in a "population"
+# Since it is 1/E(m), the maximum value (rather than the min. value) will be the most "fit" parameter 
+
+# Create a list of the fitnesses of each individual in the population 
+def pop_eval(population): 
+    E = []
+    for i in range(len(population)): 
+        evaluation = fitness_eval(population[i])
+        E.append(evaluation)
+    return E
+
+# Make next generation by pairing combinations of r and h. They will be paired based on a "roulette wheel" that spins
+# and lands on pairs to "reproduce". The smaller E(m), the greater of a chance that the pair will be selected.
+def choice_by_roulette(population):
+    
+    fitness_sum = sum(pop_eval(population)) # Sum of all E(m) in the population
+
+    draw = random.uniform(0, 1) # pick a random number between 0 and 1
+
+    accumulated = 0
+    for individual in range(len(population)):
+        fitness = fitness_eval(population[individual])
+        probability = fitness / fitness_sum # The probabilty is proportional to an individual's fitness compared to the whole population's fitness
+        accumulated += probability 
+
+        if draw <= accumulated:
+            return individual  
+
+# Sort the population according to it's fitness 
+def sort_population_by_fitness(population):
+    return sorted(population, key=fitness_eval)
+
+# Step 3: Exchange of genetic information - this is where diversity can increase the chances of landing on the best
+# fitness
+
+# "Crossover" individuals, or swap the resistivity and thickness of two individuals, increasing randomness
+def crossover(individual_a, individual_b):
+    ra = individual_a["r"]
+    ha = individual_a["h"]
+
+    rb = individual_b["r"]
+    hb = individual_b["h"]
+
+    return {"r": (ra + rb) / 2, "h": (ha + hb) / 2}
+
+# Step 4: Mutation of genetic information 
+
+# "mutate" individuals, this helps solve the potential issue that the most "fit" individual was not represented in the
+# original population 
+def mutate(individual):
+    next_r = individual["r"] + random.uniform(-5, 5) # the mutation for resistivity is higher because there is a greater range of values that it can fall in 
+    next_h = individual["h"] + random.uniform(-0.5, 0.5)
+
+    # Guarantee that the mutations are kept inside boundaries
+    next_r = min(max(next_r, lower_r_boundary), upper_r_boundary)
+    next_h = min(max(next_h, lower_h_boundary), upper_h_boundary)
+
+    return {"r": next_r, "h": next_h}
+
+# Step 5: combine all the steps and iterate until a solution converges 
+
+# Iterative function that will create new generations based on probability according to fitness
+
+def make_next_generation(population):
+    next_generation = []
+    sorted_by_fitness_population = sort_population_by_fitness(population)
+    best_individual_per_pop = sorted_by_fitness_population[-1]
+    fitness_sum = sum(fitness_eval(individual) for individual in population)
+     
+    for i in range(len(population)):
+        first_choice = choice_by_roulette(population) # Selection based on probability proportional to E(m) 
+        second_choice = choice_by_roulette(population)# Selection based on probability proportional to E(m) 
+        
+        individual = crossover(population[first_choice], population[second_choice]) # Exchange
+        individual = mutate(individual) # Mutation 
+        next_generation.append(individual)
+
+    return next_generation
+
+generations = 4 # Chose number of iterations 
+pop_size = 4 # Chose number of individuals in each population -> similar to diversity 
+
+# Enter population size and boundaries 
+# population = generate_population(pop_size, r_boundaries, h_boundaries)
+
+# Iterate for number of generations dictated 
+
+def genetic_algorithm(pop_size, generations,lower_r_boundary,upper_r_boundary,lower_z_boundary, upper_z_boundary):
+    i=1
+    
+    # Generate population based on parameters 
+    population = generate_population(pop_size,lower_r_boundary,upper_r_boundary,lower_z_boundary, upper_z_boundary)
+    # create new list for the best individuals of each iteration
+    best_individuals = []
+    
+    while True:
+        
+        best_individuals.append(sort_population_by_fitness(population)[-1])
+
+        print(f" GENERATION {i}")
+        for individual in population:
+            print(individual, "E(m)=", 1/fitness_eval(individual))
+            pass
+        if i == generations:
+            break
+        i += 1
+        population = make_next_generation(population)  
+        
+    best_individual = sort_population_by_fitness(population)[-1] # Chose the last individual from the sorted list according to E(m)
+    print("\n FINAL RESULT")
+    print(best_individual, ", E(m)=", 1/fitness_eval(best_individual))
+    # print(f"\n BEST INDIVIDUALS PER GENERATION:", best_individuals)
+    x = best_individual["r"]
+    y = best_individual["h"]
+    return x,y
+    
+r_calc,h_calc = genetic_algorithm(25,10,500,2000,0,30) # greater # of individuals will take a longer time to run but 
+# is important to diversify the original population
+print(r_calc, h_calc)
+# Final result printed: 
+# {'r': 1224.7072081870617, 'h': 12.741197593400399} E(m)= 0.005336050904037755
+
+# Creating a larger population will take a longer time to iterate but offers the greatest chance to "randomly" 
+# choose a starting generation with a good guess. Becuase there is greater diversity in the population, there is 
+# a greater chance that combining individual parameters will lead to a greater fitness.
+
+##### SIMULATED ANNEALING
+k = 1.38064852e-23
+def energy_state(r_random, h_random):
+    racalc = forwres((r1,r_random,r3),(h1,h_random),fc,fa,AB)
+    res = log10(raobs/racalc)
+    E = np.transpose(res)@res
+    return E
+
+def modified_Bprobf(E_0, E_1,T):
+    prob = exp(-(E_0 - E_1) / (k*T))
+    return prob
+
+def simulated_annealing(Tstep, Tinit, Tfin, N):
+# -----------------------------------
+# Tstep = cooling step change in T
+# N = number of model parameter configurations to test for each temperature
+# -----------------------------------
+    r_soln = []
+    h_soln = []
+    E_vers = []
+    while Tinit > Tfin:
+        for i in range(N):
+            r_random0 = random.uniform(900, 1500) #
+            h_random0 = random.uniform(9, 15) #
+            E_0 = energy_state(r_random0,h_random0)
+
+            r_random1 = random.uniform(900, 1500) #
+            h_random1 = random.uniform(9, 15) #
+            E_1 = energy_state(r_random1,h_random1)
+            if E_1 < E_0:
+                prob = 1
+                r_random0 = r_random1
+                h_random0 = h_random1
+                E_0 = E_1   
+                r_soln.append(r_random0)
+                h_soln.append(h_random0)
+                E_vers.append(E_0)
+                print(r_random0,h_random0, Tinit)
+            else:
+                prob = modified_Bprobf(E_0, E_1, Tinit)
+                if prob <= 1:
+                    rannum = random.uniform(0, 1)
+                    if prob > rannum:
+                        r_random0 = r_random1
+                        h_random0 = h_random1
+                        print(r_random0,h_random0, Tinit)
+                        r_soln.append(r_random0)
+                        h_soln.append(h_random0)
+                        E_0 = E_1
+                        E_vers.append(E_0)
+        Tinit = Tinit - Tstep
+    return r_soln, h_soln, E_vers
+
+start = time.time()
+r_soln, h_soln, E_vers = simulated_annealing(1,500,0,50) #1,500,0,50
+end = time.time()
+print(f'This took {(end-start)/60} minutes')
+print(end-start)
+
+plt.scatter(r_soln,h_soln, c=E_vers, cmap='terrain', alpha=0.7)
+plt.xlabel('Resistivity (\u03A9*m)')
+plt.ylabel("Thickness (m)")
+plt.title('SA Search of Model Space')
+plt.show()
+
+print(len(E_vers))
+
+plt.figure(figsize=(10,5))
+plt.hist2d(r_soln,h_soln,bins = (25,25))
+plt.colorbar()
+plt.xlabel('Resistivity (\u03A9*m)')
+plt.ylabel('Thickness (m)')
+plt.title('Histogram of SA Searched Area')
+plt.show()
+
+counts, xedges, yedges = np.histogram2d(r_soln, h_soln, bins=(25, 25))
+x_ind, y_ind = np.unravel_index(np.argmax(counts), counts.shape)
+
+print(f'The maximum count is {counts[x_ind][y_ind]:.0f} at index ({x_ind}, {y_ind})')
+print(f'The SA Solution is between resistivity values {xedges[x_ind]} and {xedges[x_ind+1]}')
+print(f'and between thickness values {yedges[y_ind]} and {yedges[y_ind+1]}')
+
+##### MCMC METHOD
+plt.close()
+
+# ---------------- Here we define the objective function for problem 4 using the forwres function ---------------- #
+
+def resobjective(m_1, m_2):
+    """
+    Calculate the value of the objective function in problem 4, given two model parameters
+    """
+    racalc = forwres([r1, m_1, r3], [h1,m_2], fc, fa, AB)
+    res = np.log(raobs/racalc)
+    return res.T @ res
+
+# --- Here we define an instance of of the MCMCMulti class which uses a multivariate Gaussian transition kernel --- #
+
+ex4 = MCMCMulti(
+    UniPrior, # Select the first model vector from the uniform prior distribution 
+    resobjective, # Call the resobjective function, defined above, when calculating misfit
+    600, # Search 600 model vectors in model space (it is slow)
+    (1100,1300), # The bounds for the Resistivity component in the uniform prior
+    (10,20), # The bounds for the Thickness component in the uniform prior
+    [
+        [10/r1, 0], # A covariance matrix to be used in the transition probability density kernel, We use the 
+        [0, 10/h1]  # 10 * the matrix containing the reciprocals of our initial guesses
+    ]
+)
+
+
+best4 = ex4.getMin()
+ex4.plotscatter('Resistivity (\u03A9*m)', 'Thickness (m)')
+
+print(f'The MCMC solution is {best4}')
+
+##### MONTE CARLO SEARCH
+plt.close()
+
+# ---------------- Here we define an instance of the MC Class which does a Monte Carlo Search ---------------- #
+
+four = MC(
+    50, # Picks 50 points total
+    'Resistivity', # Name of x axis
+    'Thickness', # Name of y axis
+    [1, 1], # The resolution for each respective parameter
+    [(900,2000), # The bounds for each parameter
+     (5,25)], 
+    resobjective # The objective function to use
+)
+
+four.plotContours() # plot a contour map of solution space using the MC search as opposed to the Grid Search
+plt.plot()
+
+resistivity, thickness = four.getMin() 
+
+
+print(f'The Monte Carlo Solution is: {(resistivity, thickness)}')
+
+import matplotlib.patches as patches
+
+
+def getMin(E):
+    """
+    plug in a matrix, get out the position of the minimum point
+    """
+    cands = []
+    for row in E:
+        cands.append(min(row)) 
+    small = min(cands) # smallest number in the array
+    for i, val in enumerate(cands): 
+        if val == small:
+            break # find the row position
+    candrow = E[i,:]
+    for j, val in enumerate(candrow):
+        if val == small:
+            break # find the column position
+    return i,j
+
+
+def gridsearch(rmin,rmax,hmin,hmax, _title, detail, grid):
+# rmin,max limits of plot for r (resistivity of layer 2)
+# hmin,max limits of plot for h (thickness of layer 2)
+# _title is title of graph
+# detail is the contour level resolution
+# grid is the grid resolution
+# plotothers plots the earlier results
+# plotbox plots the box that we zoom in to 
+    ngrid = grid
+    r = arange(rmin,rmax,(rmax-rmin)/float(ngrid))
+    h = arange(hmin,hmax,(hmax-hmin)/float(ngrid))
+
+    E = zeros([len(h),len(r)])
+    for i in arange(len(r)):
+        for j in arange(len(h)):
+            racalc = forwres([r1, r[i],r3], [h1,h[j]], fc, fa, AB)
+            res = log(raobs/racalc)
+            E[j,i] = res.T @ res
+
+    v = logspace(-3,3, detail) 
+    X,Y = meshgrid(r,h)
+    fig, ax = plt.subplots(figsize=(5,5))
+    ax.contour(X,Y,E,v, cmap='terrain', alpha=0.5)
+    ax.set_title(_title)
+    ax.set(xlabel='Resistivity (\u03A9*m))', ylabel='Thickness (m)')
+    row, col = getMin(E)
+        
+    ax.plot(best4[0], best4[1], marker='*')
+    ax.plot(xedges[x_ind], yedges[y_ind], marker='x',)
+    ax.plot(xedges[x_ind+1], yedges[y_ind+1], marker='x',)
+    ax.plot(r_calc, h_calc, marker='o', )
+    ax.plot(r[col], h[row], marker='P')
+    ax.plot(resistivity, thickness, marker='v')
+    
+    ax.legend(['MCMC','SA upper bound', 'SA lower bound', 'GA', 'Grid Search', 'Monte Carlo'])
+
+    return r[col], h[row]
+
+sol4r, sol4h = gridsearch(700, 2000, 1, 30, 'Solutions for Exercise 4', 20, 30)
+
+racalcGA = forwres((r1,r_calc,r3),(h1,h_calc),fc,fa,AB)
+logracalcGA = [log(el) for el in racalcGA]
+
+racalcSAlower = forwres((r1,xedges[x_ind],r3),(h1,yedges[y_ind]),fc,fa,AB)
+logracalcSAlower = [log(el) for el in racalcSAlower]
+
+racalcSAupper = forwres((r1,xedges[x_ind + 1],r3),(h1,yedges[y_ind + 1]),fc,fa,AB)
+logracalcSAupper = [log(el) for el in racalcSAupper]
+
+racalcMCMC = forwres((r1,best4[0],r3),(h1,best4[1]),fc,fa,AB)
+logracalcMCMC = [log(el) for el in racalcMCMC]
+
+racalcMC = forwres((r1,resistivity,r3),(h1,thickness),fc,fa,AB)
+logracalcMC = [log(el) for el in racalcMC]
+
+racalcGS = forwres((r1,sol4r,r3),(h1,sol4h),fc,fa,AB)
+logracalcGS = [log(el) for el in racalcGS]
+
+logAB = [log(el) for el in AB]
+
+
+
+fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
+
+ax1.plot(AB, racalcMCMC, )
+ax1.plot(AB, racalcSAlower, )
+ax1.plot(AB, racalcSAupper, )
+ax1.plot(AB, racalcGA,)
+ax1.plot(AB, racalcMC,)
+ax1.plot(AB, racalcGS,)
+ax1.scatter(AB, raobs)
+
+ax1.set_title('Resistivity vs. Distance')
+ax1.legend(['MCMC', 'SA Lower Bound', 'SA Upper Bound', 'GA', 'MC', 'Grid Search', 'Observed',])
+ax1.set(xlabel='Distance (m)', ylabel='Resisitivity (\u03A9*m)')
+
+ax2.plot(logAB, logracalcMCMC, )
+ax2.plot(logAB, logracalcSAlower, )
+ax2.plot(logAB, logracalcSAupper,)
+ax2.plot(logAB, logracalcGA,)
+ax2.plot(logAB, logracalcMC, )
+ax2.plot(logAB, logracalcGS, )
+
+ax2.scatter(logAB, lograobs)
+ax2.legend(['MCMC', 'SA Lower Bound', 'SA Upper Bound', 'GA', 'MC', 'Grid Search', 'Observed',], loc=2)
+ax2.set_title('log Resistivity vs. log Distance')
+ax2.set(xlabel='log Distance (m)', ylabel='log Resisitivity (\u03A9*m)') 
+fig.suptitle('Predicting the Observed Data with Each Method', fontsize=14)
+plt.show()
